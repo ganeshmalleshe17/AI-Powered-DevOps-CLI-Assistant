@@ -1,7 +1,6 @@
-Below are the Kubernetes manifests for deploying an Nginx application in a production environment. This includes a Deployment, a Service (with LoadBalancer), and an Ingress resource.
+Below is the YAML configuration for deploying an Nginx application using Kubernetes. This example includes a `Deployment`, `Service`, and an `Ingress` resource, where the `Service` is set to expose the service as a `LoadBalancer`.
 
 ```yaml
-# Deployment manifest
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,10 +20,8 @@ spec:
         image: nginx:latest
         ports:
         - containerPort: 80
-```
 
-```yaml
-# Service manifest for Nginx Deployment with LoadBalancer type
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -37,19 +34,15 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-```
 
-```yaml
-# Ingress manifest to expose the Nginx Service with TLS termination
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nginx-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
 spec:
   rules:
-  - host: my-nginx-app.example.com
+  - host: nginx.example.com
     http:
       paths:
       - path: /
@@ -61,14 +54,6 @@ spec:
               number: 80
 ```
 
-### Notes:
+Replace `nginx.example.com` with your desired domain or use an FQDN that matches the one used to create a public load balancer.
 
-1. Replace `my-nginx-app.example.com` with your desired domain or hostname.
-
-2. The Ingress controller used here is the official NGINX Ingress Controller, which supports TLS termination and SSL passthrough. Ensure that you have an external load balancer setup to handle the LoadBalancer type service (this may require setting up a public IP address for your cluster if you are not using an existing one).
-
-3. The Nginx image is `nginx:latest`, please ensure this matches what you have available in your environment.
-
-4. These manifests should be applied sequentially, starting with the Deployment manifest and then moving on to Service and Ingress configurations.
-
-Please note that these manifests assume you have a properly configured Kubernetes cluster with an NGINX ingress controller installed and ready for use. Additionally, make sure your DNS is set up correctly so `my-nginx-app.example.com` can resolve to your cluster's external IP address.
+Please note, for real-world production environments, you might need additional configurations like readiness and liveness probes for better application resilience. Also, ensure that services are properly secured (e.g., by using TLS and configuring certificate management) and follow best practices in Kubernetes deployment strategy and scaling policies.

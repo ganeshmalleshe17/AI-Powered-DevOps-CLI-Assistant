@@ -1,58 +1,43 @@
-Below is a sample Terraform configuration for creating an EC2 instance in your AWS environment. This example includes basic security group setup and a key pair, which are common requirements for production environments. Please adjust the parameters according to your specific needs (e.g., instance type, AMI, tags).
+Below is a basic example of production-ready Terraform configuration for creating an Amazon Virtual Private Cloud (VPC) with one EC2 instance. This example follows some standard AWS best practices, including using variable files and modules to manage resources.
 
 ```hcl
-# Create an IAM role with S3 access permissions if not already created.
-resource "aws_iam_role" "ec2_instance_role" {
-  name = "ec2-instance-role"
+# vpc_module/main.tf
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Resource = "*"
-        Sid = ""
-      },
-    ]
-  })
+provider "aws" {
+  region = var.region
 }
 
-# Create an IAM role policy to allow the EC2 instance to use this role.
-resource "aws_iam_policy" "ec2_instance_policy" {
-  name = "ec2-instance-policy"
+variable "region" {}
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = ["s3:GetObject", "s3:PutObject"]
-        Effect = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
+resource "aws_vpc" "main" {
+  cidr_block               = var.cidr_block
+  enable_dns_support       = true
+  enable_dns_hostnames     = true
+  tags                      = {
+    Name = "example-vpc"
+  }
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_instance_policy_attachment" {
-  role       = aws_iam_role.ec2_instance_role.name
-  policy_arn = aws_iam_policy.ec2_instance_policy.arn
+resource "aws_subnet" "public" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.cidr_block
+  availability_zone = var.availability_zones[0]
+  map_public_ip_on_launch = true
+  tags               = {
+    Name = "example-public-subnet"
+  }
 }
 
-# Create a security group that allows incoming traffic on port 22 (for SSH).
-resource "aws_security_group" "example" {
-  name        = "example"
-  description = "Allow SSH and HTTP access for ec2 instance"
-  vpc_id      = aws_vpc.example.id
+resource "aws_security_group" "main" {
+  name        = "default"
+  description = "Default security group for VPC"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_block  = "0.0.0.0/0" # Public access - should be restricted in production
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -63,35 +48,85 @@ resource "aws_security_group" "example" {
   }
 }
 
-# Create an EC2 instance with the specified instance type, AMI, and other configurations.
-resource "aws_instance" "example" {
-  ami           = "ami-0c55b18cd3ba94000" # Replace with your preferred AMI
-  instance_type = "t2.micro"
-  key_name      = "ec2-keypair"            # Key pair created in the next step
+resource "aws_key_pair" "example" {
+  name = "sshkey"
+  public_key = file("~/.ssh/id_rsa.pub")
+}
 
-  vpc_security_group_ids = [aws_security_group.example.id]
+resource "aws_instance" "webserver" {
+  ami                  = var.aws_ami
+  instance_type        = "t2.micro"
+  subnet_id            = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.main.id]
+  key_name             = aws_key_pair.example.name
 
   tags = {
-    Name        = "example-ec2-instance"
-    Environment = "production"
+    Name = "example-webserver"
+  }
+
+  root_block_device {
+    volume_size                = 8
+    volume_type                 = var.aws_ebs_volume_type
+    delete_on_termination       = true
+    encrypted                    = false
   }
 }
 
-# Create a key pair for SSH access.
-resource "aws_key_pair" "example" {
-  name   = "ec2-keypair"
-  public_key = file("~/.ssh/id_rsa.pub") # Replace with your actual private/public key files path
+output "vpc_id" {
+  value = aws_vpc.main.id
+}
+
+output "subnet_id" {
+  value = aws_subnet.public.id
+}
+
+output "public_ip" {
+  value = aws_instance.webserver.public_ip
 }
 ```
 
-### Explanation:
-- **IAM Role and Policy**: The `aws_iam_role` resource is used to create an IAM role that the EC2 instance can assume. This IAM role has a policy attached (`aws_iam_policy`) allowing it access to S3.
-- **Security Group**: A security group named "example" is created with ingress rules for SSH (port 22) and egress rule to allow all traffic out of the VPC. In production, you should restrict public access appropriately.
-- **EC2 Instance**: An EC2 instance is launched using an AMI of your choice (`ami-0c55b18cd3ba94000`). The `key_name` parameter references a created key pair for SSH access.
+Make sure to provide the necessary variables file (`variables.tf`):
 
-### Important Notes:
-1. Replace the placeholder values (like the AMI ID, security group configuration, etc.) with actual values relevant to your environment.
-2. Ensure all necessary resources and configurations are available in your AWS account before deploying this code.
-3. Always adhere to best practices regarding security, including proper IAM role management and network security.
+```hcl
+# vpc_module/variables.tf
 
-This example also assumes you have a key pair ready for SSH access. You can generate one using `aws_key_pair`. For production environments, consider more granular control over permissions and resources through additional configurations or Terraform modules.
+variable "region" {
+  type    = string
+  default = "us-east-1"
+}
+
+variable "cidr_block" {
+  type    = string
+  default = "10.0.0.0/16"
+}
+
+variable "aws_ami" {
+  type    = string
+  default = "ami-092b34f8a675dfe0c" # Example AMI for AWS, update with your actual AMI.
+}
+
+variable "aws_ebs_volume_type" {
+  type    = string
+  default = "standard"
+}
+```
+
+And the main `main.tf` for using this module in another part of the configuration:
+
+```hcl
+# main.tf
+
+module "vpc_module" {
+  source      = "./vpc_module"
+  region      = var.region
+  cidr_block  = var.cidr_block
+}
+
+output "public_ip_for_webserver" {
+  value = module.vpc_module.aws_instance.webserver.public_ip
+}
+```
+
+Make sure to place these files in your workspace and run `terraform init`, then apply the configuration using `terraform apply`.
+
+Remember, this is just a starting point. Depending on your requirements, you might need additional resources such as load balancers, RDS instances, EBS volumes, or other AWS services. Always review and test your Terraform configurations thoroughly to ensure they meet your needs securely and efficiently.

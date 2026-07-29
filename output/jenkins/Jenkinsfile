@@ -1,10 +1,6 @@
-```jellybeans
+```yaml
 pipeline {
     agent any
-
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '5'))
-    }
 
     stages {
         stage('Build') {
@@ -15,34 +11,48 @@ pipeline {
 
         stage('Test') {
             steps {
-                script {
-                    def testResult = sh(
-                        script: "mvn verify",
-                        returnStdout: true
-                    ).trim()
-                    
-                    if (testResult != "") {
-                        throw new InterruptedException("Tests failed with result: ${testResult}")
-                    }
-                }
+                sh 'mvn test'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                sh 'mvn clean install -Dsonar.projectKey=my-java-app -Dsonar.inclusions=src/main/java/**/*.java'
+                script {
+                    def sonarProperties = ['sonar.projectKey=my-java-app',
+                                            'sonar.sources=src/main/java',
+                                            'sonar.test.inclusions=test/**/*.java']
+
+                    def sonarRunnerCommand = "mvn -Dsonar.host.url=${sonarHost} -Dsonar.login=${sonarToken} \
+                                              -Dsonar.projectVersion=$(git rev-parse --short HEAD) \
+                                              -Dsonar.qualityGateBranchStatusEnabled=true \
+                                              -Dsonar.projectName=my-java-app \
+                                              -Dsonar.projectBaseDir=.\${WORKSPACE} \
+                                              -Dmaven.test.failure.ignore=false ${sonarProperties.join(' ')}"
+                    
+                    sh sonarRunnerCommand
+                }
             }
         }
 
-        stage('Docker Build and Push') {
+        stage('Docker Build') {
             steps {
                 script {
-                    def dockerfile = file('/path/to/your/Dockerfile')
-                    
-                    dir('docker/build') {
-                        sh "mvn dockerfile:build"
-                        sh "mvn dockerfile:push -Dusername=${env.DOCKER_USER} -Dpassword=${env.DOCKER_PASS}"
-                    }
+                    def dockerfilePath = "${WORKSPACE}/target/${env.JOB_NAME}-${env.BUILD_ID}.jar"
+                    sh "mvn -f ${dockerfileProject} clean package --file pom.xml -DskipTests=true -DskipITs=true"
+                    sh "cp target/*.jar ${dockerfilePath}"
+                    sh 'mkdir -p docker'
+                    sh "cp ${WORKSPACE}/target/${env.JOB_NAME}-${env.BUILD_ID}.jar docker/"
+                    sh 'docker build -t my-java-app:latest .'
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                script {
+                    env.DOCKER_PASSWORD = "${dockerPassword}"
+                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${dockerUsername} --password-stdin"
+                    sh "docker push my-java-app:latest"
                 }
             }
         }
@@ -50,23 +60,11 @@ pipeline {
         stage('Kubernetes Deployment') {
             steps {
                 script {
-                    def k8s = [
-                        deployment(name: 'my-java-app-deployment', image: "${env.PUBLISHED_IMAGE}:${env.BUILD_ID}")
-                    ]
+                    def k8sManifestPath = "${WORKSPACE}/deploy/kustomize/my-java-app.yaml"
 
-                    sh "kubectl apply -f ${k8s}"
+                    sh "kubectl apply -k ${k8sManifestPath}"
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
-        }
-        
-        failure {
-            // You might want to notify your team here or email them the build logs.
         }
     }
 }

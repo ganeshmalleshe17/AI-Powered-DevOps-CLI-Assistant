@@ -1,21 +1,11 @@
-To show disk usage on a Linux system, you can use the `du` (disk usage) command. Here’s how you can do it:
+To find and list files larger than 500 MB on your system, you can use the `find` command with the `-size` option. Here's how you can do it:
 
-```sh
-du -h
+```bash
+find /path/to/search -type f -size +500M
 ```
 
-This will provide a summary of the sizes in human-readable format (e.g., KB, MB, GB). 
+- `/path/to/search`: Replace this with the directory or file paths you want to search.
+- `-type f`: Ensures that only files are considered, not directories or other types of files.
+- `-size +500M`: Searches for files larger than 500 MB. The `+` symbol indicates "greater than" in terms of file size.
 
-For more detailed information and to show results for specific directories or files, you might use this instead:
-
-```sh
-du -ah
-```
-
-Or if you want to see the usage broken down by directory levels deep (`-d`), like showing only the top-level directories:
-
-```sh
-du -h --max-depth=1
-```
-
-You can combine these commands with `find` or other tools for more specific needs.
+This command will list all the files larger than 500 MB within the specified directory and its subdirectories.

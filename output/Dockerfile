@@ -1,14 +1,23 @@
 ```Dockerfile
-FROM alpine:latest
+# Use a small and secure base image
+FROM tiangolo/ui:latest
 
-WORKDIR /usr/share/nginx/html
+# Add WORKDIR
+WORKDIR /app
 
-COPY index.html /usr/share/nginx/html/
-COPY default.conf /etc/nginx/conf.d/default.conf
+# Copy only required files
+COPY . .
 
-EXPOSE 80
+# Expose the port used by the app (8000)
+EXPOSE 8000
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+# Use gunicorn as the GUNICORN_CMD_ARGS for runserver can use the PORT environment variable
+ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:8000", "app:create_app"]
 ```
 
-Note: This Dockerfile assumes the presence of an `index.html` file and a configuration file named `default.conf` in the root directory. Adjust paths as necessary for your application's specific requirements.
+Assumptions:
+- The FastAPI application is structured under a folder named `app`.
+- There is a file named `main.py` that contains the entry point of your FastAPI app.
+- You are using gunicorn for running the application, as it's common in production environments to use gunicorn with FastAPI.
+
+Make sure your application and dependencies are set up correctly before building the Docker image.
