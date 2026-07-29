@@ -82,11 +82,11 @@ def main():
             troubleshoot()
 
         elif choice == "8":
-            console.print("\n👋 Exiting AI DevOps CLI Assistant...")
+            console.print("\n Exiting AI DevOps CLI Assistant...")
             break
 
         else:
-            console.print("\n❌ Invalid option. Please try again.\n")
+            console.print("\n Invalid option. Please try again.\n")
 
 
 if __name__ == "__main__":
