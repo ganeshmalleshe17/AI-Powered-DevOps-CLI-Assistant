@@ -250,3 +250,44 @@ Example Output
 ## Phase Summary
 
 At this stage, Ollama has been successfully installed and configured on the Ubuntu server. The local AI model is ready to generate DevOps configurations, making the application completely offline and independent of external AI services.
+# Main Entry Point (`main.py`)
+
+The `main.py` file serves as the entry point of the application. It provides an interactive command-line interface (CLI) where users can choose different DevOps automation tasks.
+
+### Responsibilities
+
+- Displays the main CLI menu.
+- Accepts user input.
+- Routes requests to the appropriate module.
+- Integrates with the Ollama-powered AI engine.
+- Provides a simple and interactive user experience.
+
+### Available Features
+
+- Dockerfile Generator
+- Kubernetes YAML Generator
+- Terraform Generator
+- Jenkins Pipeline Generator
+- Linux Assistant
+- AWS Architecture Generator
+- DevOps Troubleshooter
+
+---
+
+## Source Code (`main.py`)
+
+The application starts from the `main.py` file, which provides the interactive command-line interface and routes user requests to the appropriate DevOps modules.
+
+**View the source code:**
+
+➡️ **[`main.py`](https://github.com/ganeshmalleshe17/AI-Powered-DevOps-CLI-Assistant/blob/main/main.py)**
+
+---
+
+### Responsibilities
+
+- Displays the interactive CLI menu.
+- Accepts user input.
+- Routes requests to the appropriate generator module.
+- Integrates with the Ollama-powered AI engine.
+- Provides a simple and interactive user experience.
