@@ -291,3 +291,91 @@ The application starts from the `main.py` file, which provides the interactive c
 - Routes requests to the appropriate generator module.
 - Integrates with the Ollama-powered AI engine.
 - Provides a simple and interactive user experience.
+- # Dockerfile Generator
+
+The Dockerfile Generator enables users to create production-ready Dockerfiles using natural language. It accepts application requirements from the command line, sends the prompt to the local Ollama language model, and automatically generates a Dockerfile following Docker best practices.
+
+---
+
+## Features
+
+- Generate Dockerfiles from plain English prompts.
+- Uses a locally running Ollama language model.
+- Produces production-ready Dockerfiles.
+- Automatically saves the generated Dockerfile to the `output/` directory.
+- Supports various application frameworks and runtimes.
+
+---
+
+## Source Code
+
+The implementation of the Docker Generator is available here:
+
+**Python Source:**  
+https://github.com/ganeshmalleshe17/AI-Powered-DevOps-CLI-Assistant/blob/cc242e2d70c94bd871d59fc9614eed01c31c7ac5/commands/docker.py
+
+---
+
+## Workflow
+
+```text
+User Prompt
+      │
+      ▼
+Docker Generator
+      │
+      ▼
+Load Docker Prompt Template
+      │
+      ▼
+Ollama (qwen2.5:3b)
+      │
+      ▼
+Generate Dockerfile
+      │
+      ▼
+Save as output/Dockerfile
+      │
+      ▼
+Display Generated Output
+```
+
+---
+
+## Demonstration
+
+<p align="center">
+  <img src="https://github.com/ganeshmalleshe17/AI-Powered-DevOps-CLI-Assistant/blob/main/images/docker%20generator.png?raw=true" alt="Docker Generator Demo" width="95%">
+</p>
+
+---
+
+## Generated Output
+
+The generated Dockerfile can be viewed here:
+
+**Dockerfile Output:**  
+https://github.com/ganeshmalleshe17/AI-Powered-DevOps-CLI-Assistant/blob/cc242e2d70c94bd871d59fc9614eed01c31c7ac5/output/Dockerfile
+
+---
+
+## Sample Prompt
+
+```text
+Generate a production-ready multi-stage Dockerfile for a FastAPI application using Python 3.12 slim. Install dependencies from requirements.txt, use Docker layer caching, create a non-root user, expose port 8000, include a HEALTHCHECK, optimize the image size, and start the application with Gunicorn and Uvicorn workers.
+```
+
+---
+
+## Generated File
+
+```text
+output/
+└── Dockerfile
+```
+
+---
+
+## Outcome
+
+The Docker Generator transforms natural language requirements into a production-ready Dockerfile using a local AI model. This significantly reduces manual effort, improves consistency, and accelerates containerization for modern applications.
