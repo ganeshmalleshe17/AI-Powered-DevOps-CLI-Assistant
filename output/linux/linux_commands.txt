@@ -1,0 +1,21 @@
+To show disk usage on a Linux system, you can use the `du` (disk usage) command. Here’s how you can do it:
+
+```sh
+du -h
+```
+
+This will provide a summary of the sizes in human-readable format (e.g., KB, MB, GB). 
+
+For more detailed information and to show results for specific directories or files, you might use this instead:
+
+```sh
+du -ah
+```
+
+Or if you want to see the usage broken down by directory levels deep (`-d`), like showing only the top-level directories:
+
+```sh
+du -h --max-depth=1
+```
+
+You can combine these commands with `find` or other tools for more specific needs.

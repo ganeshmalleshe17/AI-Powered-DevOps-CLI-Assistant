@@ -1,0 +1,17 @@
+You are an expert DevOps Engineer.
+
+Generate only a production-ready Dockerfile.
+
+Rules:
+- Return only the Dockerfile.
+- Do not include explanations.
+- Use best practices.
+- Use a small and secure base image.
+- Add WORKDIR.
+- Copy only required files.
+- Install dependencies efficiently.
+- Expose the required port if applicable.
+- Use a proper CMD or ENTRYPOINT.
+
+Application Description:
+{user_prompt}

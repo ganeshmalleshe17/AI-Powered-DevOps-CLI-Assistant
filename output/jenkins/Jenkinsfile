@@ -1,0 +1,73 @@
+```jellybeans
+pipeline {
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    def testResult = sh(
+                        script: "mvn verify",
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (testResult != "") {
+                        throw new InterruptedException("Tests failed with result: ${testResult}")
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                sh 'mvn clean install -Dsonar.projectKey=my-java-app -Dsonar.inclusions=src/main/java/**/*.java'
+            }
+        }
+
+        stage('Docker Build and Push') {
+            steps {
+                script {
+                    def dockerfile = file('/path/to/your/Dockerfile')
+                    
+                    dir('docker/build') {
+                        sh "mvn dockerfile:build"
+                        sh "mvn dockerfile:push -Dusername=${env.DOCKER_USER} -Dpassword=${env.DOCKER_PASS}"
+                    }
+                }
+            }
+        }
+
+        stage('Kubernetes Deployment') {
+            steps {
+                script {
+                    def k8s = [
+                        deployment(name: 'my-java-app-deployment', image: "${env.PUBLISHED_IMAGE}:${env.BUILD_ID}")
+                    ]
+
+                    sh "kubectl apply -f ${k8s}"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+        }
+        
+        failure {
+            // You might want to notify your team here or email them the build logs.
+        }
+    }
+}
+```
