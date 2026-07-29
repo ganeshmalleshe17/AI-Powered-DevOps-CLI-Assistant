@@ -1012,6 +1012,7 @@ Goodbye!
 The Exit function allows users to safely terminate the AI-Powered DevOps CLI Assistant after completing their tasks. It ensures a smooth shutdown of the application and provides a simple, intuitive way to end the interactive session.
 ---
 
+
 # Final Thoughts
 
 Building this project provided hands-on experience in integrating AI with modern DevOps workflows. Instead of relying on external AI services, the application runs completely on a local Ollama model, making it efficient, private, and cost-effective.
