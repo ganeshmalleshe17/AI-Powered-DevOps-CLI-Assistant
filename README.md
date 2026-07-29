@@ -144,9 +144,15 @@ pip 25.x.x
 
 ---
 
+# Install Ollama
+
+Ollama is used as the local Large Language Model (LLM) runtime for this project. It processes user prompts locally and generates DevOps configurations without relying on external AI APIs.
+
+---
+
 ## Install Ollama
 
-Install Ollama using the official installation script:
+Run the official installation script:
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
@@ -161,42 +167,28 @@ ollama --version
 Example Output
 
 ```text
-ollama version 0.x.x
+ollama version 0.11.x
 ```
 
 ---
 
-## Start the Ollama Service
+## Installation Output
 
-If Ollama is not already running as a system service, start it manually:
-
-```bash
-ollama serve
-```
-
-Check the service status:
-
-```bash
-sudo systemctl status ollama
-```
-
-Expected Output
-
-```text
-Active: active (running)
-```
+<p align="center">
+  <img src="https://github.com/ganeshmalleshe17/AI-Powered-DevOps-CLI-Assistant/blob/main/images/olamma%20installation.png?raw=true" alt="Ollama Installation" width="100%">
+</p>
 
 ---
 
-## Download the AI Model
+## Download the Language Model
 
-Pull the lightweight model used in this project:
+Download the lightweight model used by the application:
 
 ```bash
 ollama pull qwen2.5:3b
 ```
 
-Verify that the model is available:
+Verify the downloaded model:
 
 ```bash
 ollama list
@@ -225,23 +217,7 @@ Example Prompt
 Create a Dockerfile for a FastAPI application.
 ```
 
-Example Response
-
-```dockerfile
-FROM python:3.12-slim
-
-WORKDIR /app
-
-COPY . .
-
-RUN pip install -r requirements.txt
-
-EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-Exit the session:
+Exit the interactive session:
 
 ```text
 /bye
@@ -251,13 +227,13 @@ Exit the session:
 
 ## Verify the Ollama API
 
-Check that the local API is running:
+Confirm that the local API server is running:
 
 ```bash
 curl http://localhost:11434/api/tags
 ```
 
-Expected Output
+Example Output
 
 ```json
 {
@@ -273,17 +249,4 @@ Expected Output
 
 ## Phase Summary
 
-The Ubuntu development environment is now ready.
-
-Installed Components
-
-- Ubuntu 24.04 LTS
-- Python 3
-- Git
-- Pip
-- Python Virtual Environment
-- Build Essentials
-- Ollama
-- qwen2.5:3b Language Model
-
-The environment is now ready for building the AI-Powered DevOps CLI Assistant.
+At this stage, Ollama has been successfully installed and configured on the Ubuntu server. The local AI model is ready to generate DevOps configurations, making the application completely offline and independent of external AI services.
